@@ -1,0 +1,6 @@
+assdf -> 1
+a;lskdfj -> 0
+a;ksdasd -> -1
+asdf -> -1
+asdf -> -1
+adsfasdfasd -> -1
