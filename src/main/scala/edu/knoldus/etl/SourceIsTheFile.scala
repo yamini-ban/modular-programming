@@ -30,6 +30,7 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
   }
 
   override def occurrenceOfEveryWordInTheData() {
+
     val fetchFile = new File(nameOfTheFileToManipulate)
     if (fetchFile.exists && fetchFile.isFile) {
       val directoryName = "Count-Result"
@@ -37,34 +38,37 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
       val contentOfFetchedFile = Source.fromFile(fetchFile)
       val linesInFile = contentOfFetchedFile.getLines
       val printWriter = new PrintWriter(new File(s"${directoryName}/O-${fetchFile.getName}"))
-      linesInFile.foreach(line => {
-        line.split(" ").foreach(word => printWriter.write(s"$word -> ${line.split(word).length - 1}\n"))
+
+      val count = linesInFile.toList.foldLeft(Map.empty[String,Int])((result, line) => {
+        line.split(" ").foldLeft(Map.empty[String, Int])((_, word) => {
+          result.get(word) match {
+            case Some(value) => result + (word -> (getOccurrence(line, word) + value))
+            case _ => result + (word -> getOccurrence(line, word))
+          }
+        })
       })
 
-      /*val _ = linesInFile.foldLeft(Map[String, Int])((_, line) => {
-        line.split(" ").foldLeft(Map[String, Int])((result, word) => {
-          result + (word -> getOccurrence(line, word))
-        })
-      })*/
-
-      val map = Map.empty[String, Int]
-      for {
-        line <- linesInFile
-        word <- line
-        map :+ (word -> getOccurrence(line, word))
-      } yield map
+    count.foreach{ tuple => {
+      tuple match {
+        case (word: String, occurring: Int) => printWriter.write(s"$word -> ${occurring}\n")
+      }
+    }}
 
       printWriter.close()
       contentOfFetchedFile.close
     }
-//    else throw new CustomException("File does not exist.")
+
+    else throw new CustomException("File does not exist.")
 
   }
 
   private def getOccurrence(line: String, occurrenceOfWord: String): Int = {
-    if(line.contains(occurrenceOfWord)) {
-      line.count(o)
-    }
+      line.split(" ").foldLeft(0)((occurrence, element) => {
+      if (element == occurrenceOfWord)
+        occurrence + 1
+      else
+        occurrence
+    })
   }
 
 }
