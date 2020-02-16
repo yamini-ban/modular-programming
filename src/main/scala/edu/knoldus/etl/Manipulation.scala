@@ -1,5 +1,5 @@
 package edu.knoldus.etl
 
 trait Manipulation {
-  def processOfManipulation()
+  def processOfManipulation(): Unit
 }

@@ -14,7 +14,7 @@ abstract class ManipulateFile extends Manipulation {
 
 class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateFile with CountOccurrenceOfWords {
 
-  override def processOfManipulation() {
+  override def processOfManipulation(): Unit = {
     val fetchFile = new File(nameOfTheFileToManipulate)
     if (fetchFile.exists && fetchFile.isFile) {
       val directoryName = "Manipulated-Result"
@@ -29,7 +29,7 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
     else throw new CustomException("File does not exist.")
   }
 
-  override def occurrenceOfEveryWordInTheData() {
+  override def occurrenceOfEveryWordInTheData(): Unit = {
 
     val fetchFile = new File(nameOfTheFileToManipulate)
     if (fetchFile.exists && fetchFile.isFile) {
@@ -40,17 +40,7 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
 
       val printWriter = new PrintWriter(new File(s"${directoryName}/O-${fetchFile.getName}"))
 
-      val count = linesInFile.toList.foldLeft(Map.empty[String, Int])((result, line) => {
-        val record = line.split(" ").foldLeft(Map.empty[String, Int])((record, word) => {
-          (result.get(word), record.get(word)) match {
-            case (Some(valueResult), Some(valueRecord)) => record + (word -> (getOccurrence(line, word) + valueResult + valueRecord))
-            case (Some(valueResult), None) => record + (word -> (getOccurrence(line, word) + valueResult))
-            case (None, Some(valueRecord)) => record + (word -> (getOccurrence(line, word) + valueRecord))
-            case (None, None) => record + (word -> getOccurrence(line, word))
-          }
-        })
-        result ++ record
-      })
+      val count = getMapOfWordsWithCount(linesInFile.toList)
       count.foreach { tuple => {
         tuple match {
           case (word: String, occurring: Int) => printWriter.write(s"$word -> ${occurring}\n")
@@ -60,15 +50,28 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
       printWriter.close()
       contentOfFetchedFile.close
     }
-    else throw new CustomException("File does not exist.")
+    else {
+      throw new CustomException("File does not exist.")
+    }
   }
 
-  private def getOccurrence(line: String, occurrenceOfWord: String): Int = {
+  private def getMapOfWordsWithCount(listOfLinesFromFile: List[String]) = {
+    listOfLinesFromFile.foldLeft(Map.empty[String, Int])((result, line) => {
+      val record = line.split(" ").foldLeft(Map.empty[String, Int])((record, word) => {
+        (result.get(word), record.get(word)) match {
+          case (Some(valueResult), Some(valueRecord)) => record + (word -> (getOccurrenceInLine(line, word) + valueResult + valueRecord))
+          case (Some(valueResult), _) => record + (word -> (getOccurrenceInLine(line, word) + valueResult))
+          case (None, Some(valueRecord)) => record + (word -> valueRecord)
+          case (None, None) => record + (word -> getOccurrenceInLine(line, word))
+        }
+      })
+      result ++ record
+    })
+  }
+
+  private def getOccurrenceInLine(line: String, occurrenceOfWord: String): Int = {
     line.split(" ").foldLeft(0)((occurrence, element) => {
-      if (element == occurrenceOfWord)
-        occurrence + 1
-      else
-        occurrence
+      if (element == occurrenceOfWord) occurrence + 1 else occurrence
     })
   }
 
