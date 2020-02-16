@@ -59,9 +59,8 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
     listOfLinesFromFile.foldLeft(Map.empty[String, Int])((result, line) => {
       val record = line.split(" ").foldLeft(Map.empty[String, Int])((record, word) => {
         (result.get(word), record.get(word)) match {
-          case (Some(valueResult), Some(valueRecord)) => record + (word -> (getOccurrenceInLine(line, word) + valueResult + valueRecord))
-          case (Some(valueResult), _) => record + (word -> (getOccurrenceInLine(line, word) + valueResult))
-          case (None, Some(valueRecord)) => record + (word -> valueRecord)
+          case (Some(valueResult), None) => record + (word -> (getOccurrenceInLine(line, word) + valueResult))
+          case (_, Some(_)) => record
           case (None, None) => record + (word -> getOccurrenceInLine(line, word))
         }
       })
