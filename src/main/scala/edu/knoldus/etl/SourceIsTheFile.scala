@@ -22,7 +22,7 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
       val contentOfFetchedFile = Source.fromFile(fetchFile)
       val linesInFile = contentOfFetchedFile.getLines
       val printWriter = new PrintWriter(new File(s"$directoryName/O-${fetchFile.getName}"))
-      linesInFile.foreach(line => printWriter.write(line.toUpperCase()+"\n"))
+      linesInFile.foreach(line => printWriter.write(line.toUpperCase() + "\n"))
       printWriter.close()
       contentOfFetchedFile.close
     }
@@ -37,33 +37,34 @@ class SourceIsTheFile(val nameOfTheFileToManipulate: String) extends ManipulateF
       val _ = new File(directoryName).mkdir
       val contentOfFetchedFile = Source.fromFile(fetchFile)
       val linesInFile = contentOfFetchedFile.getLines
+
       val printWriter = new PrintWriter(new File(s"${directoryName}/O-${fetchFile.getName}"))
 
-      val count = linesInFile.toList.foldLeft(Map.empty[String,Int])((result, line) => {
-        line.split(" ").foldLeft(Map.empty[String, Int])((_, word) => {
-          result.get(word) match {
-            case Some(value) => result + (word -> (getOccurrence(line, word) + value))
-            case _ => result + (word -> getOccurrence(line, word))
+      val count = linesInFile.toList.foldLeft(Map.empty[String, Int])((result, line) => {
+        val record = line.split(" ").foldLeft(Map.empty[String, Int])((record, word) => {
+          (result.get(word), record.get(word)) match {
+            case (Some(valueResult), Some(valueRecord)) => record + (word -> (getOccurrence(line, word) + valueResult + valueRecord))
+            case (Some(valueResult), None) => record + (word -> (getOccurrence(line, word) + valueResult))
+            case (None, Some(valueRecord)) => record + (word -> (getOccurrence(line, word) + valueRecord))
+            case (None, None) => record + (word -> getOccurrence(line, word))
           }
         })
+        result ++ record
       })
-
-    count.foreach{ tuple => {
-      tuple match {
-        case (word: String, occurring: Int) => printWriter.write(s"$word -> ${occurring}\n")
+      count.foreach { tuple => {
+        tuple match {
+          case (word: String, occurring: Int) => printWriter.write(s"$word -> ${occurring}\n")
+        }
       }
-    }}
-
+      }
       printWriter.close()
       contentOfFetchedFile.close
     }
-
     else throw new CustomException("File does not exist.")
-
   }
 
   private def getOccurrence(line: String, occurrenceOfWord: String): Int = {
-      line.split(" ").foldLeft(0)((occurrence, element) => {
+    line.split(" ").foldLeft(0)((occurrence, element) => {
       if (element == occurrenceOfWord)
         occurrence + 1
       else
